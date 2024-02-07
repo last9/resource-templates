@@ -1,0 +1,26 @@
+global_metrics:
+  - name: consumer_lag_offset
+    promql: sum(confluent_kafka_server_consumer_lag_offsets{})
+
+  - name: loss_on_received_record
+    promql: absent_over_time(sum(confluent_kafka_server_received_records{}[15m])) or 0
+
+  - name: received_records
+    promql: sum(confluent_kafka_server_received_records{})
+
+  - name: sent_records
+    promql: sum(confluent_kafka_server_sent_records{})
+
+resources:
+  - type: each_topic
+    expand_by:
+     - label: topic.topic
+       using: equal_to
+
+  - type: each_consumer_group
+    expand_by:
+      - label: consumer.topic
+        using: similar
+      - label: consumer.consumer_group_id
+        using: similar
+

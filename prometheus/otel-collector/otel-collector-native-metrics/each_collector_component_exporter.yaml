@@ -1,0 +1,93 @@
+# Collector consists of 3 main components
+# 1. Receiver
+# 2. Processor
+# 3. Exporter
+# A collector pipeline works in this order: Receiver -> Processor -> Exporter
+# It is important to observe all 3 components to observe otel collector 
+
+metrics:
+  - name: otel_process_cpu_utilisation
+    promql: avg(rate(otelcol_process_cpu_seconds_total{}[4m])*60) * 100
+    unit: percent
+
+  - name: otel_receiver_data_failure_rate
+    promql: ( sum by (receiver)(rate(otelcol_receiver_refused_metric_points_total{}[4m])*60) / (sum by (receiver) (rate(otelcol_receiver_accepted_metric_points_total{}[4m])*60) + sum by (receiver)(rate(otelcol_receiver_refused_metric_points_total{}[4m])*60)) ) * 100
+    unit: percent
+
+  - name: otel_processor_data_failure_rate
+    promql: ( sum by (processor) (rate(otelcol_processor_refused_metric_points_total{}[4m])*60) / (sum by (processor)(rate(otelcol_processor_accepted_metric_points_total{}[4m])*60) + sum by (processor)(rate(otelcol_processor_refused_metric_points_total{}[4m])*60) + sum by (processor) (rate(otelcol_processor_dropped_metric_points_total{}[4m])*60)) ) * 100
+    unit: percent
+
+  - name: otel_processor_data_drop_rate
+    promql: ( sum by (processor) (rate(otelcol_processor_dropped_metric_points_total{}[4m])*60) / (sum by (processor) (rate(otelcol_processor_accepted_metric_points_total{}[4m])*60) + sum by (processor) (rate(otelcol_processor_refused_metric_points_total{}[4m])*60) + sum by (processor) (rate(otelcol_processor_dropped_metric_points_total{}[4m])*60)) ) * 100
+    unit: percent
+
+  - name: otel_exporter_data_failure_rate
+    promql: ( sum by (exporter) (rate(otelcol_exporter_send_failed_metric_points_total{}[4m])*60) / (sum by (exporter)(rate(otelcol_exporter_sent_metric_points_total{}[4m])*60) + sum by (exporter) (rate(otelcol_exporter_send_failed_metric_points_total{}[4m])*60)) + sum(rate(otelcol_exporter_enqueue_failed_metric_points_total{}[4m])*60) ) * 100
+    unit: percent
+
+  - name: otel_exporter_queue_capacity_usage
+    promql: ( sum by (instance, exporter) (otelcol_exporter_queue_size{}) / sum by (instance, exporter) (otelcol_exporter_queue_capacity{}) ) * 100
+    unit: percent
+
+  - name: otel_exporter_enqueue_failed_metric_rate
+    promql: ( sum by (exporter) (rate(otelcol_exporter_enqueue_failed_metric_points_total{}[4m])*60) / (sum by (exporter)(rate(otelcol_exporter_sent_metric_points_total{}[4m])*60) + sum by (exporter) (rate(otelcol_exporter_send_failed_metric_points_total{}[4m])*60)) + sum(rate(otelcol_exporter_enqueue_failed_metric_points_total{}[4m])*60) ) * 100 
+    unit: percent
+
+rules:
+  - name: Otel process cpu utilisation
+    expr: otel_process_cpu_utilisation > 80
+    algo_type: static_threshold
+    bad_minutes: 8
+    total_minutes: 15
+    annotations:
+      description: Load average for otel process 
+
+  - name: Receiver data failure rate
+    expr: otel_receiver_data_failure_rate  > 0
+    algo_type: static_threshold
+    bad_minutes: 2
+    total_minutes: 5 
+    annotations:
+      description: Rate at which metrics are getting refused at each receiver
+
+  - name: Processor data failure rate
+    expr: otel_processor_data_failure_rate  > 0
+    algo_type: static_threshold
+    bad_minutes: 2
+    total_minutes: 5 
+    annotations:
+      description: Rate at which metrics are getting refused for each processor
+
+  - name: Processor data drop rate
+    expr: otel_processor_data_drop_rate  > 0
+    algo_type: static_threshold
+    bad_minutes: 2
+    total_minutes: 5 
+    annotations:
+      description: Rate at which metrics are getting dropped at each processor, direct indicator of data loss
+
+  - name: Exporter data failure rate
+    expr: otel_exporter_data_failure_rate  > 0
+    algo_type: static_threshold
+    bad_minutes: 3
+    total_minutes: 10 
+    annotations:
+      description: Rate at which exported metrics are getting failed by each exporter
+
+  - name: Exporter queue capacity usage
+    expr: otel_exporter_queue_capacity_usage  > 80
+    algo_type: static_threshold
+    bad_minutes: 5
+    total_minutes: 10 
+    annotations:
+      description: If the retry queue is full, exporter won't be able to retry sending metrics and results into data drop at exporter
+
+  - name: Exporter data enqueue failure rate
+    expr: otel_exporter_enqueue_failed_metric_rate  > 0
+    algo_type: static_threshold
+    bad_minutes: 2
+    total_minutes: 5 
+    annotations:
+      description: Rate at which metric queue is failing at exporter, direct indicator of resource shortage
+

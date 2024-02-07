@@ -1,0 +1,13 @@
+sources:
+  "cloudwatch":
+    aws_region: "${AWS_REGION}"
+    aws_role_arn: "${AWS_ROLE_ARN}"
+    type: "cloudwatch"
+
+properties:
+  elbs:
+    filter: "resource_id=~'.*'"
+    resource_type: "elasticloadbalancing"
+    source_name: "cloudwatch"
+    source_type: "cloudwatch"
+    type: "resource-groups-tagging-api-get-resources"

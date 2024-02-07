@@ -1,0 +1,31 @@
+global_metrics:
+  - name: throughput
+    promql: sum(rate(http_request_total{}[4m])*60)
+
+  - name: latency
+    promql: histogram_quantile(0.99, sum by (le)(rate(http_request_total_bucket{}[4m])*60))
+
+  - name: availability
+    promql: 100*(1 - ((sum(rate(http_request_total{status=~'5.*'}[4m])*60) or 0)/(sum(rate(http_request_total{}[4m])*60) or 1)))  
+
+  - name: los_on_throughput
+    promql: absent_over_time(http_request_total{}[5m])
+
+resources:
+  - type: each_load_balancer
+    expand_by:
+     - label: kube_ingress_paths.service_name
+       using: equal_to
+     - label: kube_ingress_paths.path
+       using: not_equal_to
+     - label: kube_ingress_paths.host
+       using: similar
+
+  - type: all_load_balancer
+    agg_over:
+      - label: url_paths.backend
+        using: similar
+    expand_by:
+      - label: url_paths.host
+        using: similar_with_pattern
+

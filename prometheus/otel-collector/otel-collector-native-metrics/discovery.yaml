@@ -1,0 +1,27 @@
+sources:
+  prom:
+    type: prometheus
+    datasource: "${PROM_DATASOURCE}"
+
+properties:
+  receiver:
+    source_type: prometheus
+    source_name: prom
+    timeout: 10m
+    query: label_map(otelcol_receiver_accepted_metric_points_total{}, 'job', 'instance', 'receiver')
+
+  processor:
+    source_type: prometheus
+    source_name: prom
+    timeout: 10m
+    query: label_map(otelcol_processor_accepted_metric_points_total{}, 'job', 'instance', 'processor')
+
+  exporter:
+    source_type: prometheus
+    source_name: prom
+    timeout: 10m
+    query: label_map(otelcol_exporter_sent_metric_points_total{}, 'job', 'instance', 'exporter')
+
+
+
+

@@ -1,0 +1,32 @@
+metrics:
+  - name: consumer_lag_offset
+    promql: sum(confluent_kafka_server_consumer_lag_offsets{topic=~'${topic}'})
+    unit: count
+
+  - name: loss_on_received_record
+    promql: absent_over_time(sum(confluent_kafka_server_received_records{topic=~'${topic}'}[15m])) or 0
+    unit: min
+
+  - name: received_records
+    promql: sum(confluent_kafka_server_received_records{topic=~'${topic}'})
+    unit: count
+
+  - name: sent_records
+    promql: sum(confluent_kafka_server_sent_records{})
+    unit: count
+
+rules:
+  - name: Find consumer lag 
+    expr: consumer_lag_offset > 400
+    algo_type: static_threshold
+    bad_minutes: 3
+    total_minutes: 5 
+    annotations:
+      description: Consumer lag defining how many records are waiting to be processed
+
+patch_metrics:
+  property: topic
+  filters:
+    topic: topic
+
+

@@ -1,0 +1,43 @@
+sources:
+  stackd:
+    type: stackdriver
+    google_cloud_project: "${GOOGLE_CLOUD_PROJECT}"
+    google_application_credentials: "${GOOGLE_APPLICATION_CREDENTIALS}"
+  prom:
+    type: prometheus
+    datasource: "${PROM_DATASOURCE}"
+
+instances-by:
+  url_paths:
+    type: stackdriver
+    source_name: stackd
+    resource_type: url_maps
+    allowed_resource_keys:
+      - path
+      - backend
+      - host
+    resource_filter:
+      - resource_key: path
+        resource_value: /*
+
+  kube_ingress_paths:
+    type: prometheus
+    source_name: prom
+    query: label_map(kube_ingress_path{}, 'host', 'path', 'region')
+
+derived-instances:
+  path_for_service:
+    left_instance: url_paths
+    right_instance: kube_ingress_paths
+    on:
+      - left_label: host 
+        right_label: host
+        match_by: == 
+      - left_label: path 
+        right_label: path
+        match_by: =~ 
+    
+
+
+
+
