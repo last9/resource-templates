@@ -8,13 +8,13 @@ properties:
     source_type: prometheus
     source_name: prom
     timeout: 10m
-    query: label_map(bdb_conns{}, 'bdb_name')
+    query: label_map(bdb_conns{}, 'bdb', 'bdb_name')
 
   cluster:
     source_type: prometheus
     source_name: prom
     timeout: 10m
-    query: label_map(bdb_conns{}, 'job', 'cluster')
+    query: label_map(bdb_conns{}, 'bdb', 'bdb_name', 'job', 'cluster')
 
 
 
