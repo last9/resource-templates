@@ -8,13 +8,13 @@ properties:
     source_type: prometheus
     source_name: prom
     timeout: 10m
-    query: label_map(confluent_kafka_server_consumer_lag_offsets{}, 'topic')
+    query: label_map(confluent_kafka_server_consumer_lag_offsets{}, 'kafka_id', 'topic')
 
   consumer:
     source_type: prometheus
     source_name: prom
     timeout: 10m
-    query: label_map(confluent_kafka_server_consumer_lag_offsets{}, 'topic', 'consumer_group_id')
+    query: label_map(confluent_kafka_server_consumer_lag_offsets{}, 'kafka_id', 'topic', 'consumer_group_id')
 
 
 
