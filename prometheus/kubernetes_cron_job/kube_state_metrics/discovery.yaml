@@ -8,7 +8,7 @@ properties:
     source_type: prometheus
     source_name: prom
     timeout: 10m
-    query: label_map(kube_cronjob_info{}, 'cronjob')
+    query: label_map(kube_cronjob_info{}, 'cronjob', 'cluster')
 
 
 
