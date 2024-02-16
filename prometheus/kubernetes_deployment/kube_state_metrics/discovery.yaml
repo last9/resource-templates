@@ -8,7 +8,7 @@ properties:
     source_type: prometheus
     source_name: prom
     timeout: 10m
-    query: label_map(kube_deployment_labels{deployment!~'kube.*'}, 'deployment', 'cluster')
+    query: label_map(kube_deployment_labels{deployment!~'kube.*'}, 'namespace', 'deployment', 'cluster')
 
 
 
