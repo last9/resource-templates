@@ -16,7 +16,7 @@ properties:
   kube_ingress_paths:
     source_type: prometheus
     source_name: prom
-    query: label_map(kube_ingress_path{}, 'host', 'path', 'region')
+    query: label_map(kube_ingress_path{}, 'cluster', 'host', 'path', 'region')
 
 derived_properties:
   path_for_service:
