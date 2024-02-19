@@ -1,0 +1,14 @@
+sources:
+  prom:
+    type: prometheus
+    datasource: "${PROM_DATASOURCE}"
+
+properties:
+  routes:
+    source_type: prometheus
+    source_name: prom
+    timeout: 10m
+    query: label_map(http_requests_total{}, 'route', 'kubernetes_service_name', 'namespace', 'cluster')
+
+
+
