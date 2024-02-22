@@ -1,0 +1,32 @@
+sources:
+  prom:
+    type: prometheus
+    datasource: "${PROM_DATASOURCE}"
+
+properties:
+  kube_ingress_paths:
+    source_type: prometheus
+    source_name: prom
+    query: label_map(kube_ingress_path{cluster!=''}, 'cluster', 'path', 'region', 'ingress')
+
+  kube_ingress_annotations:
+    source_type: prometheus
+    source_name: prom
+    query: label_map(kube_ingress_annotations{cluster!='', annotation_ingress_kubernetes_io_url_map!=''}, 'cluster', 'ingress', 'annotation_ingress_kubernetes_io_url_map')
+
+derived_properties:
+  path_with_loadbalancer:
+    left_property: kube_ingress_paths
+    right_property: kube_ingress_annotations
+    on:
+      - left_label: ingress
+        right_label: ingress
+        match_by: == 
+      - left_label: cluster
+        right_label: cluster
+        match_by: ==
+    
+
+
+
+
