@@ -25,6 +25,8 @@ derived_properties:
       - left_label: cluster
         right_label: cluster
         match_by: ==
+    drop:
+      - kube_ingress_annotations
     
 
 
